@@ -5,3 +5,8 @@ app:
   exchanges:
     bitget:
       base-url: 'https://api.bitget.com'
+  screener:
+    min-body-pct: 0.30 # candle body: (close - open) / open >= 0.30
+    volume-multiple: 5 # signal volume >= 5x avg volume of history-bars prev candles
+    max-close-from-high: 0.25 # close near high: (high - close) <= 0.25 x (high - low), weak close -> skip
+    history-bars: 20 # closed candles before the signal used for vol avg
