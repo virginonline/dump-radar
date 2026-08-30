@@ -1,9 +1,12 @@
 # Build
 build/
-target/
+bin/
+
 out/
 *.class
 *.jar
+
+!gradle/wrapper/gradle-wrapper.jar
 
 # Gradle
 .gradle/
