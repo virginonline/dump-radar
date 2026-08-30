@@ -1,3 +1,7 @@
 spring:
   application:
     name: dump-radar
+app:
+  exchanges:
+    bitget:
+      base-url: 'https://api.bitget.com'

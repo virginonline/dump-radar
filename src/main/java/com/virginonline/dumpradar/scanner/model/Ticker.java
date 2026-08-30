@@ -1,4 +1,4 @@
-package com.virginonline.scanner.model;
+package com.virginonline.dumpradar.scanner.model;
 
 import java.math.BigDecimal;
 
