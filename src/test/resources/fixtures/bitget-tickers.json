@@ -1,0 +1,9 @@
+{
+  "code": "00000",
+  "msg": "success",
+  "requestTime": 1788080815722,
+  "data": [
+    { "symbol": "BTCUSDT", "lastPr": "78049.9",  "change24h": "0.00599", "usdtVolume": "793127812.26764", "ts": "1788080815723" },
+    { "symbol": "ETHUSDT", "lastPr": "4021.5",   "change24h": "0.0121",  "usdtVolume": "512000000.5",    "ts": "1788080815723" }
+  ]
+}
