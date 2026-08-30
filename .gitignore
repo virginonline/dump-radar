@@ -1,0 +1,33 @@
+# Build
+build/
+target/
+out/
+*.class
+*.jar
+
+# Gradle
+.gradle/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+
+# Logs
+*.log
+logs/
+
+# Secrets
+.env
+.env.*
+
+# OS
+.DS_Store
+
+# Local data
+*.sqlite
+*.sqlite3
+data/
