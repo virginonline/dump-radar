@@ -1,13 +1,13 @@
-package com.virginonline.dumpbot;
+package com.virginonline.dumpradar;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class DumpbotApplication {
+public class DumpRadarApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(DumpbotApplication.class, args);
+		SpringApplication.run(DumpRadarApplication.class, args);
 	}
 
 }

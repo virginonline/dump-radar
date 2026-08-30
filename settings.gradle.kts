@@ -1,1 +1,1 @@
-rootProject.name = "dumpbot"
+rootProject.name = "dump-radar"
