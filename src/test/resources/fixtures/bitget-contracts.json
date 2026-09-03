@@ -1,0 +1,24 @@
+{
+  "code": "00000",
+  "msg": "success",
+  "data": [
+    {
+      "symbol": "BTCUSDT",
+      "baseCoin": "BTC",
+      "symbolStatus": "normal",
+      "symbolType": "perpetual"
+    },
+    {
+      "symbol": "USDCUSDT",
+      "baseCoin": "USDC",
+      "symbolStatus": "normal",
+      "symbolType": "perpetual"
+    },
+    {
+      "symbol": "1000BONKUSDT",
+      "baseCoin": "1000BONK",
+      "symbolStatus": "normal",
+      "symbolType": "perpetual"
+    }
+  ]
+}

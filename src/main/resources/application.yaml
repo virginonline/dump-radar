@@ -2,9 +2,16 @@ spring:
   application:
     name: dump-radar
 app:
+  cache:
+    ttl: 1h
   exchanges:
     bitget:
       base-url: 'https://api.bitget.com'
+  prefilter:
+    min-volume-24h: 2_000_000 # min 24h quote volume in usd
+    min-price: 0.001
+    min-listing-age-days: 14
+    denied-base-coins: [USDC, USDE, DAI, TUSD, FDUSD, USDP, USDD, USDS, FRAX, EURI, WBTC, WETH, WSTETH, CBBTC, CBETH]
   screener:
     min-body-pct: 0.30 # candle body: (close - open) / open >= 0.30
     volume-multiple: 5 # signal volume >= 5x avg volume of history-bars prev candles

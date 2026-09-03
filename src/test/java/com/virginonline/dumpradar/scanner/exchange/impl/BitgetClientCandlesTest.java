@@ -11,6 +11,7 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.math.BigDecimal;
 import java.time.Clock;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
@@ -22,7 +23,8 @@ class BitgetClientCandlesTest {
     private final ObjectMapper mapper = new ObjectMapper();
     private final Clock clock = Clock.systemUTC();
     private final BitgetClient client = new BitgetClient(
-            new ExchangeProperties(Map.of(Exchange.BITGET, new ExchangeProperties.Endpoint("https://api.bitget.com"))),
+            new ExchangeProperties(new ExchangeProperties.Cache(Duration.ofHours(1)),
+                    Map.of(Exchange.BITGET, new ExchangeProperties.Endpoint("https://api.bitget.com"))),
             new OkHttpClient(),
             mapper, clock);
 

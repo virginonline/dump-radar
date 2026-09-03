@@ -5,6 +5,7 @@ import com.virginonline.dumpradar.config.RetryOn429Interceptor;
 import com.virginonline.dumpradar.scanner.exchange.Exchange;
 import com.virginonline.dumpradar.scanner.exchange.Timeframe;
 import com.virginonline.dumpradar.scanner.model.Candle;
+import com.virginonline.dumpradar.scanner.model.SymbolMeta;
 import com.virginonline.dumpradar.scanner.model.Ticker;
 import mockwebserver3.MockResponse;
 import mockwebserver3.MockWebServer;
@@ -16,7 +17,9 @@ import org.junit.jupiter.api.Test;
 import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.List;
@@ -114,10 +117,26 @@ class BitgetClientTest {
         assertEquals(3, server.getRequestCount());
     }
 
+    @Test
+    void symbols_parsedAndCachedOnce() throws IOException {
+        server.enqueue(ok(contractsBody()));
+        BitgetClient client = client();
+
+        Map<String, SymbolMeta> first = client.symbols();
+        Map<String, SymbolMeta> second = client.symbols();
+
+        assertEquals(1, server.getRequestCount());
+        assertEquals(3, first.size());
+        assertEquals("BTC", first.get("BTCUSDT").baseCoin());
+        assertEquals("1000BONK", first.get("1000BONKUSDT").baseCoin());
+        assertEquals("normal", first.get("USDCUSDT").symbolStatus());
+        assertEquals(first, second);
+    }
+
     private BitgetClient client() {
         return new BitgetClient(
-                new ExchangeProperties(Map.of(Exchange.BITGET,
-                        new ExchangeProperties.Endpoint(baseUrl()))),
+                new ExchangeProperties(new ExchangeProperties.Cache(Duration.ofHours(1)),
+                        Map.of(Exchange.BITGET, new ExchangeProperties.Endpoint(baseUrl()))),
                 new OkHttpClient.Builder()
                         .addInterceptor(new RetryOn429Interceptor(2))
                         .build(),
@@ -159,6 +178,12 @@ class BitgetClientTest {
         return "{\"code\":\"00000\",\"msg\":\"success\",\"data\":[{"
                 + "\"symbol\":\"PEPEUSDT\",\"lastPr\":\"0.0000142\",\"change24h\":\"0.42\","
                 + "\"usdtVolume\":\"25000000\",\"ts\":\"1788450537000\"}]}";
+    }
+
+    private static String contractsBody() throws IOException {
+        try (var in = BitgetClientTest.class.getResourceAsStream("/fixtures/bitget-contracts.json")) {
+            return new String(in.readAllBytes(), StandardCharsets.UTF_8);
+        }
     }
 
     private static long ms(String iso) {
