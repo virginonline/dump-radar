@@ -15,15 +15,18 @@ public abstract class AbstractExchangeClient {
     private final String baseUrl;
     private final ObjectMapper mapper;
     private final OkHttpClient http;
+    private final Exchange exchange;
 
-    public AbstractExchangeClient(String baseUrl, OkHttpClient http, ObjectMapper mapper) {
+    public AbstractExchangeClient(Exchange exchange, String baseUrl, OkHttpClient http, ObjectMapper mapper) {
+        this.exchange = exchange;
         this.baseUrl = baseUrl;
         this.mapper = mapper;
         this.http = http;
     }
 
-
-    protected abstract String name();
+    private String name() {
+        return exchange.name();
+    }
 
     public <T> List<T> fetch(String path, Function<JsonNode, List<T>> parser) {
         Request request = new Request.Builder().url(baseUrl + path).get().build();

@@ -10,6 +10,7 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
 import java.math.BigDecimal;
+import java.time.Clock;
 import java.util.List;
 import java.util.Map;
 
@@ -19,11 +20,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class BitgetClientCandlesTest {
 
     private final ObjectMapper mapper = new ObjectMapper();
-
+    private final Clock clock = Clock.systemUTC();
     private final BitgetClient client = new BitgetClient(
             new ExchangeProperties(Map.of(Exchange.BITGET, new ExchangeProperties.Endpoint("https://api.bitget.com"))),
             new OkHttpClient(),
-            mapper);
+            mapper, clock);
 
     @Test
     void parseCandles_mapsRowsInChronologicalOrder() {

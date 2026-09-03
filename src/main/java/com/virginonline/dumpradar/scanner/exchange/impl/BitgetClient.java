@@ -3,6 +3,8 @@ package com.virginonline.dumpradar.scanner.exchange.impl;
 import com.virginonline.dumpradar.config.ExchangeProperties;
 import com.virginonline.dumpradar.scanner.exchange.AbstractExchangeClient;
 import com.virginonline.dumpradar.scanner.exchange.Exchange;
+import com.virginonline.dumpradar.scanner.exchange.MarketDataClient;
+import com.virginonline.dumpradar.scanner.exchange.Timeframe;
 import com.virginonline.dumpradar.scanner.model.Candle;
 import com.virginonline.dumpradar.scanner.model.Ticker;
 import okhttp3.OkHttpClient;
@@ -11,29 +13,41 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
 import java.math.BigDecimal;
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.List;
 
 @Component
-public class BitgetClient extends AbstractExchangeClient {
+public class BitgetClient extends AbstractExchangeClient implements MarketDataClient {
 
-    public BitgetClient(ExchangeProperties props, OkHttpClient http, ObjectMapper mapper) {
-        super(props.exchanges().get(Exchange.BITGET).baseUrl(), http, mapper);
-    }
+    private final Clock clock;
 
-    public List<Ticker> fetchTickers() {
-        return fetch("/api/v2/mix/market/tickers?productType=USDT-FUTURES", Parser::parseTickers);
-    }
-
-    public List<Candle> fetchCandles(String symbol, String granularity, int limit) {
-        return fetch("/api/v2/mix/market/candles?symbol=" + symbol
-                + "&productType=USDT-FUTURES&granularity=" + granularity
-                + "&limit=" + limit, Parser::parseCandles);
+    public BitgetClient(ExchangeProperties props, OkHttpClient http,
+                        ObjectMapper mapper, Clock clock) {
+        super(Exchange.BITGET, props.exchanges().get(Exchange.BITGET).baseUrl(), http, mapper);
+        this.clock = clock;
     }
 
     @Override
-    protected String name() {
-        return Exchange.BITGET.name();
+    public List<Ticker> tickers() {
+        return fetch("/api/v2/mix/market/tickers?productType=USDT-FUTURES", Parser::parseTickers);
+    }
+
+    @Override
+    public List<Candle> candles(String symbol, Timeframe timeframe, int limit) {
+        List<Candle> raw = fetch("/api/v2/mix/market/candles?symbol=" + symbol
+                + "&productType=USDT-FUTURES&granularity=" + timeframe.code()
+                + "&limit=" + (limit + 1), Parser::parseCandles);
+        if (!raw.isEmpty() && raw.getLast().openTime() + timeframe.duration().toMillis()
+                > clock.instant().toEpochMilli()) {
+            raw = raw.subList(0, raw.size() - 1);
+        }
+        return raw.size() > limit ? new ArrayList<>(raw.subList(0, limit)) : raw;
+    }
+
+    @Override
+    public Exchange exchange() {
+        return Exchange.BITGET;
     }
 
 
