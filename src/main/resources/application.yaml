@@ -13,6 +13,7 @@ app:
     min-listing-age-days: 14
     denied-base-coins: [USDC, USDE, DAI, TUSD, FDUSD, USDP, USDD, USDS, FRAX, EURI, WBTC, WETH, WSTETH, CBBTC, CBETH]
   screener:
+    cron: "30 0/4 * * *"
     min-body-pct: 0.30 # candle body: (close - open) / open >= 0.30
     volume-multiple: 5 # signal volume >= 5x avg volume of history-bars prev candles
     max-close-from-high: 0.25 # close near high: (high - close) <= 0.25 x (high - low), weak close -> skip
