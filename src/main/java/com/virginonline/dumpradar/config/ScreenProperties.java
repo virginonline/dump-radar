@@ -1,14 +1,11 @@
 package com.virginonline.dumpradar.config;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-
 import java.math.BigDecimal;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "app.screener")
 public record ScreenProperties(
-        BigDecimal minBodyPct,
-        BigDecimal volumeMultiple,
-        BigDecimal maxCloseFromHigh,
-        int historyBars
-) {
-}
+    BigDecimal minBodyPct,
+    BigDecimal volumeMultiple,
+    BigDecimal maxCloseFromHigh,
+    int historyBars) {}
