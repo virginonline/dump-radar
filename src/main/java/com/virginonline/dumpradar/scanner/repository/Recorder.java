@@ -14,4 +14,6 @@ public interface Recorder {
   void appendCandles(String symbol, List<Candle> candles);
 
   List<Candidate> loadActive();
+
+  boolean hasTerminalSince(String baseAsset, Instant since);
 }

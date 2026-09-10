@@ -2,21 +2,26 @@ package com.virginonline.dumpradar.scanner.scheduled;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.virginonline.dumpradar.config.PoolProperties;
 import com.virginonline.dumpradar.config.PrefilterProperties;
 import com.virginonline.dumpradar.config.ScreenProperties;
 import com.virginonline.dumpradar.scanner.exchange.Exchange;
 import com.virginonline.dumpradar.scanner.exchange.MarketDataClient;
 import com.virginonline.dumpradar.scanner.exchange.Timeframe;
+import com.virginonline.dumpradar.scanner.model.Candidate;
 import com.virginonline.dumpradar.scanner.model.Candle;
 import com.virginonline.dumpradar.scanner.model.PumpSignal;
 import com.virginonline.dumpradar.scanner.model.Source;
 import com.virginonline.dumpradar.scanner.model.SymbolMeta;
 import com.virginonline.dumpradar.scanner.model.Ticker;
+import com.virginonline.dumpradar.scanner.repository.Recorder;
+import com.virginonline.dumpradar.scanner.service.CandidatePool;
 import com.virginonline.dumpradar.scanner.service.ListingAgeTracker;
 import com.virginonline.dumpradar.scanner.service.PumpCandleScreener;
 import com.virginonline.dumpradar.scanner.service.TickerPrefilter;
 import java.math.BigDecimal;
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
@@ -26,6 +31,7 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.ObjectMapper;
 
 class ScreenerScheduledTest {
 
@@ -38,7 +44,12 @@ class ScreenerScheduledTest {
           new ListingAgeTracker(),
           new PumpCandleScreener(screenProps()),
           Clock.fixed(NOW, ZoneOffset.UTC),
-          prefilterProps());
+          prefilterProps(),
+          new CandidatePool(
+              new NoopRecorder(),
+              Clock.fixed(NOW, ZoneOffset.UTC),
+              new PoolProperties(Duration.ofHours(24), Duration.ofMinutes(30), Duration.ofHours(4)),
+              new ObjectMapper()));
 
   @Test
   void cascade_prefiltersThenSignals() {
@@ -150,6 +161,28 @@ class ScreenerScheduledTest {
         throw new RuntimeException("boobs");
       }
       return candlesBySymbol.getOrDefault(symbol, List.of());
+    }
+  }
+
+  private static final class NoopRecorder implements Recorder {
+    @Override
+    public void upsertCandidate(Candidate candidate) {}
+
+    @Override
+    public void appendEvent(
+        String candidateId, String eventType, String jsonPayload, Instant occurredAt) {}
+
+    @Override
+    public void appendCandles(String symbol, List<Candle> candles) {}
+
+    @Override
+    public List<Candidate> loadActive() {
+      return List.of();
+    }
+
+    @Override
+    public boolean hasTerminalSince(String baseAsset, Instant since) {
+      return false;
     }
   }
 }

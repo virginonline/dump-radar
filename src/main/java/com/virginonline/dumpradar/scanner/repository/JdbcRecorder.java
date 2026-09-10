@@ -21,19 +21,19 @@ import org.springframework.stereotype.Repository;
 public class JdbcRecorder implements Recorder {
   private static final String UPSERT_CANDIDATE =
       """
-            insert into t_candidates (id, base_asset, exchanges, source, state,
-                                      anchor_high, pump_start, detected_at, deadline, confirmed_at, updated_at)
-            values (:id, :baseAsset, :exchanges, :source, :state,
-                    :anchorHigh, :pumpStart, :detectedAt, :deadline, :confirmedAt, :updatedAt)
-            on conflict(id) do update set
-                exchanges    = excluded.exchanges,
-                state        = excluded.state,
-                anchor_high  = excluded.anchor_high,
-                pump_start   = excluded.pump_start,
-                deadline     = excluded.deadline,
-                confirmed_at = excluded.confirmed_at,
-                updated_at   = excluded.updated_at
-            """;
+              insert into t_candidates (id, base_asset, exchanges, source, state,
+                                        anchor_high, pump_start, detected_at, deadline, confirmed_at, updated_at)
+              values (:id, :baseAsset, :exchanges, :source, :state,
+                      :anchorHigh, :pumpStart, :detectedAt, :deadline, :confirmedAt, :updatedAt)
+              on conflict(id) do update set
+                  exchanges    = excluded.exchanges,
+                  state        = excluded.state,
+                  anchor_high  = excluded.anchor_high,
+                  pump_start   = excluded.pump_start,
+                  deadline     = excluded.deadline,
+                  confirmed_at = excluded.confirmed_at,
+                  updated_at   = excluded.updated_at
+              """;
   private final NamedParameterJdbcTemplate jdbc;
 
   public JdbcRecorder(NamedParameterJdbcTemplate jdbc) {
@@ -118,5 +118,22 @@ public class JdbcRecorder implements Recorder {
                 instant(rs, "deadline"),
                 instant(rs, "confirmed_at"),
                 instant(rs, "updated_at")));
+  }
+
+  @Override
+  public boolean hasTerminalSince(String baseAsset, Instant since) {
+    Integer count =
+        jdbc.getJdbcOperations()
+            .queryForObject(
+                """
+                            select count(*) from t_candidates
+                            where base_asset = ?
+                            and state != 'WATCHING'
+                            and updated_at > ?
+                            """,
+                Integer.class,
+                baseAsset,
+                since.toEpochMilli());
+    return count != null && count > 0;
   }
 }

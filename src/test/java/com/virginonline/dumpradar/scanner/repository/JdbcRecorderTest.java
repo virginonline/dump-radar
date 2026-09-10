@@ -1,7 +1,9 @@
 package com.virginonline.dumpradar.scanner.repository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.virginonline.dumpradar.scanner.exchange.Exchange;
 import com.virginonline.dumpradar.scanner.model.Candidate;
@@ -133,6 +135,32 @@ class JdbcRecorderTest {
             .queryForObject(
                 "select count(*) from t_candle_1m where symbol = 'PEPEUSDT'", Integer.class);
     assertEquals(3, count);
+  }
+
+  @Test
+  void terminalSince_cooldownWindow() {
+    recorder.upsertCandidate(watching("0.00001000")); // WATCHING — не в счёт
+    assertFalse(recorder.hasTerminalSince("PEPE", T));
+
+    recorder.upsertCandidate(terminal(CandidateState.EXPIRED)); // updatedAt = T+60s
+    assertTrue(recorder.hasTerminalSince("PEPE", T.plusSeconds(30)));
+    assertFalse(recorder.hasTerminalSince("PEPE", T.plusSeconds(120)));
+    assertFalse(recorder.hasTerminalSince("BTC", T)); // чужой base_asset
+  }
+
+  private static Candidate terminal(CandidateState state) {
+    return new Candidate(
+        "PEPEUSDT-BITGET-20260907T1200Z",
+        "PEPE",
+        Set.of(Exchange.BITGET),
+        Source.SCAN_4H,
+        state,
+        new BigDecimal("0.00001000"),
+        new BigDecimal("0.00000995"),
+        T,
+        T.plusSeconds(86_400),
+        null,
+        T.plusSeconds(60));
   }
 
   private static Candidate watching(String anchorHigh) {

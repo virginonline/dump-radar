@@ -9,6 +9,10 @@ spring:
         synchronous: NORMAL
         busy_timeout: 5000
 app:
+  pool:
+    watching-4h: 24h
+    watching-15m: 30m
+    cooldown: 4h
   cache:
     ttl: 1h
   exchanges:
@@ -18,7 +22,7 @@ app:
     min-volume-24h: 2_000_000 # min 24h quote volume in usd
     min-price: 0.001
     min-listing-age-days: 14
-    denied-base-coins: [USDC, USDE, DAI, TUSD, FDUSD, USDP, USDD, USDS, FRAX, EURI, WBTC, WETH, WSTETH, CBBTC, CBETH]
+    denied-base-coins: [ USDC, USDE, DAI, TUSD, FDUSD, USDP, USDD, USDS, FRAX, EURI, WBTC, WETH, WSTETH, CBBTC, CBETH ]
   screener:
     cron: "30 0/4 * * *"
     min-body-pct: 0.30 # candle body: (close - open) / open >= 0.30

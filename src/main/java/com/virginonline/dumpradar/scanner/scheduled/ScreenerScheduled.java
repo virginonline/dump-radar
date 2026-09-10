@@ -7,6 +7,7 @@ import com.virginonline.dumpradar.scanner.model.PumpSignal;
 import com.virginonline.dumpradar.scanner.model.Source;
 import com.virginonline.dumpradar.scanner.model.SymbolMeta;
 import com.virginonline.dumpradar.scanner.model.Ticker;
+import com.virginonline.dumpradar.scanner.service.CandidatePool;
 import com.virginonline.dumpradar.scanner.service.ListingAgeTracker;
 import com.virginonline.dumpradar.scanner.service.PumpCandleScreener;
 import com.virginonline.dumpradar.scanner.service.TickerPrefilter;
@@ -36,6 +37,7 @@ public class ScreenerScheduled {
   private final Clock clock;
   private final PrefilterProperties prefilterProperties;
   private final Semaphore semaphore;
+  private final CandidatePool candidatePool;
 
   public ScreenerScheduled(
       List<MarketDataClient> clients,
@@ -43,13 +45,15 @@ public class ScreenerScheduled {
       ListingAgeTracker ageTracker,
       PumpCandleScreener screener,
       Clock clock,
-      PrefilterProperties prefilterProperties) {
+      PrefilterProperties prefilterProperties,
+      CandidatePool candidatePool) {
     this.clients = clients;
     this.prefilter = prefilter;
     this.ageTracker = ageTracker;
     this.screener = screener;
     this.clock = clock;
     this.prefilterProperties = prefilterProperties;
+    this.candidatePool = candidatePool;
     this.semaphore = new Semaphore(8);
   }
 
@@ -57,6 +61,8 @@ public class ScreenerScheduled {
   public void screener() {
     List<PumpSignal> signals = new ArrayList<>();
     clients.forEach(client -> signals.addAll(scanExchange(client)));
+    signals.forEach(candidatePool::admit);
+    candidatePool.expireOverdue();
     log.info("scan4h done: exchanges={}, signals={}", clients.size(), signals.size());
   }
 
@@ -75,12 +81,7 @@ public class ScreenerScheduled {
                 .toList();
         for (Future<Optional<PumpSignal>> f : futures) {
           try {
-            f.get()
-                .ifPresent(
-                    signal -> {
-                      signals.add(signal);
-                      sendNotification(signal);
-                    });
+            f.get().ifPresent(signals::add);
           } catch (Exception e) {
             log.error(e.getMessage());
           }
@@ -133,9 +134,5 @@ public class ScreenerScheduled {
       log.warn("{}: candles failed: {}", client.exchange(), t.symbol());
       return Optional.empty();
     }
-  }
-
-  private void sendNotification(PumpSignal signal) {
-    log.info("Sending notification to client: {}", signal);
   }
 }
