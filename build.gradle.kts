@@ -25,9 +25,10 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-webmvc")
 
     testImplementation("org.springframework.boot:spring-boot-starter-actuator-test")
-    testImplementation("org.springframework.boot:spring-boot-starter-quartz-test")
     implementation("com.squareup.okhttp3:okhttp:$okHttpVersion")
-
+    implementation("org.springframework.boot:spring-boot-starter-jdbc")
+    implementation("org.springframework.boot:spring-boot-starter-flyway")
+    implementation("org.xerial:sqlite-jdbc")
     testImplementation("com.squareup.okhttp3:mockwebserver3:$okHttpVersion")
     testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")

@@ -1,6 +1,13 @@
 spring:
   application:
     name: dump-radar
+  datasource:
+    url: jdbc:sqlite:dump-radar.db
+    hikari:
+      data-source-properties:
+        journal_mode: WAL
+        synchronous: NORMAL
+        busy_timeout: 5000
 app:
   cache:
     ttl: 1h
