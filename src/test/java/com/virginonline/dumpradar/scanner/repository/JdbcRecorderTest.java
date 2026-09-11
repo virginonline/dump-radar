@@ -44,6 +44,7 @@ class JdbcRecorderTest {
         new Candidate(
             "PEPEUSDT-BITGET-20260907T1200Z",
             "PEPE",
+            "PEPEUSDT",
             Set.of(Exchange.BITGET),
             Source.SCAN_4H,
             CandidateState.WATCHING,
@@ -89,6 +90,7 @@ class JdbcRecorderTest {
         new Candidate(
             "PEPEUSDT-BITGET-20260907T1200Z",
             "PEPE",
+            "PEPEUSDT",
             Set.of(Exchange.BITGET),
             Source.SCAN_4H,
             CandidateState.EXPIRED,
@@ -152,6 +154,7 @@ class JdbcRecorderTest {
     return new Candidate(
         "PEPEUSDT-BITGET-20260907T1200Z",
         "PEPE",
+        "PEPEUSDT",
         Set.of(Exchange.BITGET),
         Source.SCAN_4H,
         state,
@@ -167,6 +170,7 @@ class JdbcRecorderTest {
     return new Candidate(
         "PEPEUSDT-BITGET-20260907T1200Z",
         "PEPE",
+        "PEPEUSDT",
         Set.of(Exchange.BITGET),
         Source.SCAN_4H,
         CandidateState.WATCHING,

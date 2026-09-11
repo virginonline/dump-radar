@@ -8,6 +8,7 @@ import java.util.Set;
 public record Candidate(
     String id,
     String baseAsset,
+    String symbol,
     Set<Exchange> exchanges,
     Source source,
     CandidateState state,

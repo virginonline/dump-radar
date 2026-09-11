@@ -1,0 +1,1 @@
+alter table t_candidates add column symbol text not null default '';

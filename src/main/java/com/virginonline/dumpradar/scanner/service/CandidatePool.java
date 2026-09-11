@@ -51,6 +51,7 @@ public class CandidatePool {
           new Candidate(
               current.id(),
               current.baseAsset(),
+              current.symbol(),
               union,
               current.source(),
               current.state(),
@@ -74,6 +75,7 @@ public class CandidatePool {
         new Candidate(
             idOf(signal),
             signal.baseAsset(),
+            signal.symbol(),
             Set.of(signal.exchange()),
             signal.source(),
             CandidateState.WATCHING,
@@ -89,16 +91,13 @@ public class CandidatePool {
   }
 
   public void confirm(String candidateId) {
-    var candidate =
-        recorder.loadActive().stream()
-            .filter(c -> c.id().equals(candidateId))
-            .findFirst()
-            .orElseThrow(() -> new RuntimeException("candidate not found"));
+    var candidate = getCandidateById(candidateId);
     Instant now = clock.instant();
     var newCandidate =
         new Candidate(
             candidate.id(),
             candidate.baseAsset(),
+            candidate.symbol(),
             candidate.exchanges(),
             candidate.source(),
             CandidateState.CONFIRMED,
@@ -120,6 +119,7 @@ public class CandidatePool {
           new Candidate(
               c.id(),
               c.baseAsset(),
+              c.symbol(),
               c.exchanges(),
               c.source(),
               CandidateState.EXPIRED,
@@ -135,16 +135,13 @@ public class CandidatePool {
   }
 
   public void markMissed(String candidateId) {
-    var candidate =
-        recorder.loadActive().stream()
-            .filter(c -> c.id().equals(candidateId))
-            .findFirst()
-            .orElseThrow(() -> new RuntimeException("candidate not found"));
+    var candidate = getCandidateById(candidateId);
     Instant now = clock.instant();
     var newCandidate =
         new Candidate(
             candidate.id(),
             candidate.baseAsset(),
+            candidate.symbol(),
             candidate.exchanges(),
             candidate.source(),
             CandidateState.MISSED,
@@ -158,6 +155,13 @@ public class CandidatePool {
     recorder.appendEvent(candidate.id(), "missed", payloadOf(newCandidate), now);
   }
 
+  public Candidate getCandidateById(String candidateId) {
+    return recorder.loadActive().stream()
+        .filter(c -> c.id().equals(candidateId))
+        .findFirst()
+        .orElseThrow(() -> new RuntimeException("candidate not found"));
+  }
+
   public List<Candidate> active() {
     return recorder.loadActive();
   }
@@ -167,6 +171,29 @@ public class CandidatePool {
     int active = recorder.loadActive().size();
     log.info("pool restored: {} active candidates survived restart", active);
     return active;
+  }
+
+  public Optional<Candidate> raiseAnchor(String candidateId, BigDecimal newHigh) {
+    var now = clock.instant();
+    var candidate = getCandidateById(candidateId);
+    if (newHigh.compareTo(candidate.anchorHigh()) <= 0) return Optional.empty();
+    var newCandidate =
+        new Candidate(
+            candidate.id(),
+            candidate.baseAsset(),
+            candidate.symbol(),
+            candidate.exchanges(),
+            candidate.source(),
+            candidate.state(),
+            newHigh,
+            candidate.pumpStart(),
+            candidate.detectedAt(),
+            candidate.deadline(),
+            candidate.confirmedAt(),
+            now);
+    recorder.upsertCandidate(newCandidate);
+    recorder.appendEvent(candidate.id(), "anchor_update", payloadOf(newCandidate), now);
+    return Optional.of(newCandidate);
   }
 
   private String idOf(PumpSignal s) {

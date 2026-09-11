@@ -9,6 +9,9 @@ spring:
         synchronous: NORMAL
         busy_timeout: 5000
 app:
+  confirmation:
+    near-high: 0.04
+    gap-drop: 0.28
   pool:
     watching-4h: 24h
     watching-15m: 30m

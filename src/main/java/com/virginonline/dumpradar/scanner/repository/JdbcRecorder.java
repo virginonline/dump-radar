@@ -21,9 +21,9 @@ import org.springframework.stereotype.Repository;
 public class JdbcRecorder implements Recorder {
   private static final String UPSERT_CANDIDATE =
       """
-              insert into t_candidates (id, base_asset, exchanges, source, state,
+              insert into t_candidates (id, base_asset, symbol, exchanges, source, state,
                                         anchor_high, pump_start, detected_at, deadline, confirmed_at, updated_at)
-              values (:id, :baseAsset, :exchanges, :source, :state,
+              values (:id, :baseAsset, :symbol, :exchanges, :source, :state,
                       :anchorHigh, :pumpStart, :detectedAt, :deadline, :confirmedAt, :updatedAt)
               on conflict(id) do update set
                   exchanges    = excluded.exchanges,
@@ -55,6 +55,7 @@ public class JdbcRecorder implements Recorder {
         new MapSqlParameterSource()
             .addValue("id", c.id())
             .addValue("baseAsset", c.baseAsset())
+            .addValue("symbol", c.symbol())
             .addValue(
                 "exchanges",
                 c.exchanges().stream().map(Enum::name).collect(Collectors.joining(",")))
@@ -109,6 +110,7 @@ public class JdbcRecorder implements Recorder {
             new Candidate(
                 rs.getString("id"),
                 rs.getString("base_asset"),
+                rs.getString("symbol"),
                 parseExchanges(rs.getString("exchanges")),
                 Source.valueOf(rs.getString("source")),
                 CandidateState.valueOf(rs.getString("state")),
