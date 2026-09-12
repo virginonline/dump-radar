@@ -1,4 +1,4 @@
-package com.virginonline.dumpradar.scanner.service;
+package com.virginonline.dumpradar.scanner.rule;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -20,13 +20,14 @@ import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 
-class ConfirmationRuleImplTest {
+class ConfirmationRuleTest {
 
   private static final Instant NOW = Instant.parse("2026-09-07T12:30:00Z");
   private static final BigDecimal ANCHOR = new BigDecimal("100");
 
-  private final ConfirmationRuleImpl rule =
-      new ConfirmationRuleImpl(
+  private final ConfirmationRule rule =
+      new CompositeConfirmationRule(
+          List.of(new RedCandleWithVolumePattern(), new WickRejectionPattern()),
           new ConfirmProperties(new BigDecimal("0.04"), new BigDecimal("0.28")));
 
   @Test
@@ -64,7 +65,7 @@ class ConfirmationRuleImplTest {
   @Test
   void wickRejection_belowZone_empty() {
     List<Candle> candles = history();
-    candles.add(candle("87", "90", "86", "87", "50")); // wick 0.75, high 90 < 96
+    candles.add(candle("87", "90", "86", "87", "50"));
 
     assertTrue(rule.check(candidate(), candles, NOW).isEmpty());
   }
@@ -91,6 +92,18 @@ class ConfirmationRuleImplTest {
     candles.add(candle("97", "97", "97", "97", "500")); // high == low
 
     assertTrue(rule.check(candidate(), candles, NOW).isEmpty());
+  }
+
+  @Test
+  void firstConfirmingMomentWins_candleOuterIteration() {
+    List<Candle> candles = history();
+    candles.add(candle("97", "100", "96", "97", "50"));
+    candles.add(candle("100", "100", "95", "95.5", "300"));
+
+    Optional<Confirmation> confirmation = rule.check(candidate(), candles, NOW);
+
+    assertTrue(confirmation.isPresent());
+    assertEquals(ConfirmationKind.WICK_REJECTION, confirmation.get().kind());
   }
 
   private static List<Candle> history() {

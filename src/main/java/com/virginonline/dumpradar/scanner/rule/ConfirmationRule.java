@@ -1,4 +1,4 @@
-package com.virginonline.dumpradar.scanner.service;
+package com.virginonline.dumpradar.scanner.rule;
 
 import com.virginonline.dumpradar.scanner.model.Candidate;
 import com.virginonline.dumpradar.scanner.model.Candle;

@@ -14,8 +14,10 @@ import com.virginonline.dumpradar.scanner.model.PumpSignal;
 import com.virginonline.dumpradar.scanner.model.Source;
 import com.virginonline.dumpradar.scanner.model.SymbolMeta;
 import com.virginonline.dumpradar.scanner.model.Ticker;
+import com.virginonline.dumpradar.scanner.rule.CompositeConfirmationRule;
+import com.virginonline.dumpradar.scanner.rule.RedCandleWithVolumePattern;
+import com.virginonline.dumpradar.scanner.rule.WickRejectionPattern;
 import com.virginonline.dumpradar.scanner.service.CandidatePool;
-import com.virginonline.dumpradar.scanner.service.ConfirmationRuleImpl;
 import com.virginonline.dumpradar.testfix.FakeRecorder;
 import com.virginonline.dumpradar.testfix.MutableClock;
 import java.math.BigDecimal;
@@ -44,7 +46,12 @@ class WatcherScheduledTest {
           new ObjectMapper());
   private final WatcherScheduled watcher =
       new WatcherScheduled(
-          pool, List.of(client), clock, new ConfirmationRuleImpl(confirmProps), confirmProps);
+          pool,
+          List.of(client),
+          clock,
+          new CompositeConfirmationRule(
+              List.of(new RedCandleWithVolumePattern(), new WickRejectionPattern()), confirmProps),
+          confirmProps);
 
   @Test
   void wickAtAnchor_confirms() {
