@@ -10,6 +10,8 @@ import com.virginonline.dumpradar.scanner.exchange.Exchange;
 import com.virginonline.dumpradar.scanner.model.Candidate;
 import com.virginonline.dumpradar.scanner.model.CandidateState;
 import com.virginonline.dumpradar.scanner.model.Candle;
+import com.virginonline.dumpradar.scanner.model.Confirmation;
+import com.virginonline.dumpradar.scanner.model.ConfirmationKind;
 import com.virginonline.dumpradar.scanner.model.Decision;
 import com.virginonline.dumpradar.scanner.model.PumpSignal;
 import com.virginonline.dumpradar.scanner.model.Source;
@@ -25,7 +27,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.ObjectMapper;
 
 class CandidatePoolTest {
 
@@ -38,7 +39,8 @@ class CandidatePoolTest {
           recorder,
           clock,
           new PoolProperties(Duration.ofHours(24), Duration.ofMinutes(30), Duration.ofHours(4)),
-          new ObjectMapper());
+          (candidate, type, now, entry) ->
+              recorder.appendEvent(candidate.id(), type.wireName(), "{}", now));
 
   @Test
   void admit_newCandidate_createdWatching() {
@@ -52,7 +54,7 @@ class CandidatePoolTest {
     assertEquals(0, new BigDecimal("0.00000995").compareTo(c.pumpStart()));
     assertEquals(T0.plus(Duration.ofHours(24)), c.deadline()); // ttl(SCAN_4H)
     assertEquals(1, pool.active().size());
-    assertEquals(List.of("new"), recorder.eventTypes("PEPEUSDT-BITGET-20260907T120030Z"));
+    assertEquals(List.of("candidate.new"), recorder.eventTypes("PEPEUSDT-BITGET-20260907T120030Z"));
   }
 
   @Test
@@ -65,7 +67,7 @@ class CandidatePoolTest {
     assertTrue(d.merged());
     assertFalse(d.anchorUpdated());
     assertEquals(1, pool.active().size());
-    assertEquals(List.of("new"), recorder.eventTypes(first.candidate().id()));
+    assertEquals(List.of("candidate.new"), recorder.eventTypes(first.candidate().id()));
   }
 
   @Test
@@ -76,7 +78,9 @@ class CandidatePoolTest {
 
     assertTrue(d.anchorUpdated());
     assertEquals(0, new BigDecimal("0.0000188").compareTo(d.candidate().anchorHigh()));
-    assertEquals(List.of("new", "anchor_update"), recorder.eventTypes(first.candidate().id()));
+    assertEquals(
+        List.of("candidate.new", "candidate.anchor_update"),
+        recorder.eventTypes(first.candidate().id()));
   }
 
   @Test
@@ -111,7 +115,18 @@ class CandidatePoolTest {
     Decision d = pool.admit(signal("PEPE", "0.0000142", "0.00000995"));
     clock.advance(Duration.ofMinutes(90));
 
-    pool.confirm(d.candidate().id());
+    pool.confirm(
+        d.candidate().id(),
+        new Confirmation(
+            ConfirmationKind.RED_CANDLE_WITH_VOLUME,
+            new Candle(
+                0L,
+                new BigDecimal("100"),
+                new BigDecimal("101"),
+                new BigDecimal("99"),
+                new BigDecimal("100.5"),
+                new BigDecimal("100")),
+            T0.plus(Duration.ofMinutes(90))));
 
     Candidate confirmed = recorder.stored.get(d.candidate().id());
     assertEquals(CandidateState.CONFIRMED, confirmed.state());
@@ -185,6 +200,11 @@ class CandidatePoolTest {
 
     @Override
     public void appendCandles(String symbol, List<Candle> candles) {}
+
+    @Override
+    public List<Candle> candlesOf(String symbol, int limit) {
+      return List.of();
+    }
 
     @Override
     public List<Candidate> loadActive() {

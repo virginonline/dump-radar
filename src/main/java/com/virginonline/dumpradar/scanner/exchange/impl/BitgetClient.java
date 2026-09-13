@@ -53,6 +53,11 @@ public class BitgetClient extends AbstractExchangeClient implements MarketDataCl
     return raw.size() > limit ? new ArrayList<>(raw.subList(0, limit)) : raw;
   }
 
+  @Override
+  public String chartUrl(String symbol) {
+    return "https://www.bitget.com/futures/usdt/" + symbol;
+  }
+
   private Map<String, SymbolMeta> fetchSymbolsRaw() {
     return fetch("/api/v2/mix/market/contracts?productType=USDT-FUTURES", Parser::parseContracts)
         .stream()

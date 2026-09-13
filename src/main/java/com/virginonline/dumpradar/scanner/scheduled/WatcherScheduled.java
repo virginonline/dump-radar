@@ -5,11 +5,14 @@ import com.virginonline.dumpradar.scanner.exchange.MarketDataClient;
 import com.virginonline.dumpradar.scanner.exchange.Timeframe;
 import com.virginonline.dumpradar.scanner.model.Candidate;
 import com.virginonline.dumpradar.scanner.model.Candle;
+import com.virginonline.dumpradar.scanner.model.Confirmation;
+import com.virginonline.dumpradar.scanner.repository.Recorder;
 import com.virginonline.dumpradar.scanner.rule.ConfirmationRule;
 import com.virginonline.dumpradar.scanner.service.CandidatePool;
 import java.math.BigDecimal;
 import java.time.Clock;
 import java.util.List;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -23,18 +26,21 @@ public class WatcherScheduled {
   private final Clock clock;
   private final ConfirmationRule rule;
   private final ConfirmProperties confirmProps;
+  private final Recorder recorder;
 
   public WatcherScheduled(
       CandidatePool pool,
       List<MarketDataClient> clients,
       Clock clock,
       ConfirmationRule confirmationRule,
-      ConfirmProperties confirmProps) {
+      ConfirmProperties confirmProps,
+      Recorder recorder) {
     this.pool = pool;
     this.clients = clients;
     this.clock = clock;
     this.rule = confirmationRule;
     this.confirmProps = confirmProps;
+    this.recorder = recorder;
   }
 
   @Scheduled(fixedDelay = 60_000, initialDelay = 30_000)
@@ -44,6 +50,7 @@ public class WatcherScheduled {
       try {
         var client = clientFor(candidate);
         List<Candle> candles = client.candles(candidate.symbol(), Timeframe.M1, 120);
+        recorder.appendCandles(candidate.symbol(), candles);
 
         Candidate current =
             candles.stream()
@@ -52,10 +59,10 @@ public class WatcherScheduled {
                 .flatMap(high -> pool.raiseAnchor(candidate.id(), high))
                 .orElse(candidate);
 
-        boolean confirmed = rule.check(current, candles, now).isPresent();
-        if (confirmed) {
-          pool.confirm(current.id());
-          continue;
+        Optional<Confirmation> hit = rule.check(current, candles, now);
+        if (hit.isPresent()) {
+          pool.confirm(current.id(), hit.get());
+          continue; // confirmed this tick must not become MISSED
         }
         BigDecimal floor =
             current.anchorHigh().multiply(BigDecimal.ONE.subtract(confirmProps.gapDrop()));

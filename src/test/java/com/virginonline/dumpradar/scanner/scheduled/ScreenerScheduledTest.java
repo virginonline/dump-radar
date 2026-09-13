@@ -31,7 +31,6 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.ObjectMapper;
 
 class ScreenerScheduledTest {
 
@@ -49,7 +48,7 @@ class ScreenerScheduledTest {
               new NoopRecorder(),
               Clock.fixed(NOW, ZoneOffset.UTC),
               new PoolProperties(Duration.ofHours(24), Duration.ofMinutes(30), Duration.ofHours(4)),
-              new ObjectMapper()));
+              (candidate, type, now, entry) -> {}));
 
   @Test
   void cascade_prefiltersThenSignals() {
@@ -145,6 +144,11 @@ class ScreenerScheduledTest {
     }
 
     @Override
+    public String chartUrl(String symbol) {
+      return "https://www.bitget.com/futures/usdt/" + symbol;
+    }
+
+    @Override
     public List<Ticker> tickers() {
       return tickers;
     }
@@ -174,6 +178,11 @@ class ScreenerScheduledTest {
 
     @Override
     public void appendCandles(String symbol, List<Candle> candles) {}
+
+    @Override
+    public List<Candle> candlesOf(String symbol, int limit) {
+      return List.of();
+    }
 
     @Override
     public List<Candidate> loadActive() {

@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.ObjectMapper;
 
 class Scanner15mScheduledTest {
 
@@ -45,7 +44,7 @@ class Scanner15mScheduledTest {
           recorder,
           clock,
           new PoolProperties(Duration.ofHours(24), Duration.ofMinutes(30), Duration.ofHours(4)),
-          new ObjectMapper());
+          (candidate, type, now, entry) -> {});
   private final Scanner15mScheduled scanner =
       new Scanner15mScheduled(
           clock,
@@ -81,6 +80,11 @@ class Scanner15mScheduledTest {
     @Override
     public Exchange exchange() {
       return Exchange.BITGET;
+    }
+
+    @Override
+    public String chartUrl(String symbol) {
+      return "https://www.bitget.com/futures/usdt/" + symbol;
     }
 
     @Override

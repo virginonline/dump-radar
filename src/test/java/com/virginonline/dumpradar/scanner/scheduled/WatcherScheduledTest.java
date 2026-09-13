@@ -7,13 +7,7 @@ import com.virginonline.dumpradar.config.props.PoolProperties;
 import com.virginonline.dumpradar.scanner.exchange.Exchange;
 import com.virginonline.dumpradar.scanner.exchange.MarketDataClient;
 import com.virginonline.dumpradar.scanner.exchange.Timeframe;
-import com.virginonline.dumpradar.scanner.model.Candidate;
-import com.virginonline.dumpradar.scanner.model.CandidateState;
-import com.virginonline.dumpradar.scanner.model.Candle;
-import com.virginonline.dumpradar.scanner.model.PumpSignal;
-import com.virginonline.dumpradar.scanner.model.Source;
-import com.virginonline.dumpradar.scanner.model.SymbolMeta;
-import com.virginonline.dumpradar.scanner.model.Ticker;
+import com.virginonline.dumpradar.scanner.model.*;
 import com.virginonline.dumpradar.scanner.rule.CompositeConfirmationRule;
 import com.virginonline.dumpradar.scanner.rule.RedCandleWithVolumePattern;
 import com.virginonline.dumpradar.scanner.rule.WickRejectionPattern;
@@ -27,7 +21,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.ObjectMapper;
 
 class WatcherScheduledTest {
 
@@ -43,7 +36,7 @@ class WatcherScheduledTest {
           recorder,
           clock,
           new PoolProperties(Duration.ofHours(24), Duration.ofMinutes(30), Duration.ofHours(4)),
-          new ObjectMapper());
+          (candidate, type, now, entry) -> {});
   private final WatcherScheduled watcher =
       new WatcherScheduled(
           pool,
@@ -51,7 +44,26 @@ class WatcherScheduledTest {
           clock,
           new CompositeConfirmationRule(
               List.of(new RedCandleWithVolumePattern(), new WickRejectionPattern()), confirmProps),
-          confirmProps);
+          confirmProps,
+          recorder);
+
+  private static List<Candle> history() {
+    List<Candle> candles = new ArrayList<>();
+    for (int i = 0; i < 25; i++) {
+      candles.add(candle("80", "80", "79", "80", "100"));
+    }
+    return candles;
+  }
+
+  private static Candle candle(String open, String high, String low, String close, String volume) {
+    return new Candle(
+        0L,
+        new BigDecimal(open),
+        new BigDecimal(high),
+        new BigDecimal(low),
+        new BigDecimal(close),
+        new BigDecimal(volume));
+  }
 
   @Test
   void wickAtAnchor_confirms() {
@@ -80,6 +92,8 @@ class WatcherScheduledTest {
     assertEquals(0, new BigDecimal("100").compareTo(c.anchorHigh()));
   }
 
+  // --- helpers ---
+
   @Test
   void gapWithoutConfirmation_marksMissed() {
     admit("100", "70");
@@ -105,8 +119,6 @@ class WatcherScheduledTest {
     assertEquals(CandidateState.CONFIRMED, stored().state());
   }
 
-  // --- helpers ---------------------------------------------------------------
-
   private Candidate stored() {
     return recorder.stored.values().stream().findFirst().orElseThrow();
   }
@@ -128,30 +140,17 @@ class WatcherScheduledTest {
             T0.minus(Duration.ofMinutes(30))));
   }
 
-  private static List<Candle> history() {
-    List<Candle> candles = new ArrayList<>();
-    for (int i = 0; i < 25; i++) {
-      candles.add(candle("80", "80", "79", "80", "100"));
-    }
-    return candles;
-  }
-
-  private static Candle candle(String open, String high, String low, String close, String volume) {
-    return new Candle(
-        0L,
-        new BigDecimal(open),
-        new BigDecimal(high),
-        new BigDecimal(low),
-        new BigDecimal(close),
-        new BigDecimal(volume));
-  }
-
   private static final class FakeClient implements MarketDataClient {
     final Map<String, List<Candle>> candlesBySymbol = new java.util.HashMap<>();
 
     @Override
     public Exchange exchange() {
       return Exchange.BITGET;
+    }
+
+    @Override
+    public String chartUrl(String symbol) {
+      return "https://www.bitget.com/futures/usdt/" + symbol;
     }
 
     @Override

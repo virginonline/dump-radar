@@ -12,6 +12,8 @@ public interface MarketDataClient {
 
   List<Candle> candles(String symbol, Timeframe timeframe, int limit);
 
+  String chartUrl(String symbol);
+
   Map<String, SymbolMeta> symbols();
 
   Exchange exchange();

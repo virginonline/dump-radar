@@ -31,7 +31,7 @@ class VolumeSurgeRuleTest {
 
   @Test
   void insufficientHistory_fails() {
-    List<Candle> candles = blocks("100", 3); // 45 свечей < 75
+    List<Candle> candles = blocks("100", 3); // 45 candles < 75
     candles.addAll(recent("8000"));
     assertFalse(rule.isSurge(candles));
   }

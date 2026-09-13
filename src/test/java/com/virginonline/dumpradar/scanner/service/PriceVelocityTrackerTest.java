@@ -24,7 +24,7 @@ class PriceVelocityTrackerTest {
 
   @Test
   void surge25in60m_singleHit() {
-    tracker.update(List.of(ticker("PEPEUSDT", "100")), clock.instant()); // старт окна
+    tracker.update(List.of(ticker("PEPEUSDT", "100")), clock.instant()); // window start
     clock.advance(Duration.ofMinutes(61));
 
     List<VelocityHit> hits = tracker.update(List.of(ticker("PEPEUSDT", "126")), clock.instant());

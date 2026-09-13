@@ -21,19 +21,19 @@ import org.springframework.stereotype.Repository;
 public class JdbcRecorder implements Recorder {
   private static final String UPSERT_CANDIDATE =
       """
-              insert into t_candidates (id, base_asset, symbol, exchanges, source, state,
-                                        anchor_high, pump_start, detected_at, deadline, confirmed_at, updated_at)
-              values (:id, :baseAsset, :symbol, :exchanges, :source, :state,
-                      :anchorHigh, :pumpStart, :detectedAt, :deadline, :confirmedAt, :updatedAt)
-              on conflict(id) do update set
-                  exchanges    = excluded.exchanges,
-                  state        = excluded.state,
-                  anchor_high  = excluded.anchor_high,
-                  pump_start   = excluded.pump_start,
-                  deadline     = excluded.deadline,
-                  confirmed_at = excluded.confirmed_at,
-                  updated_at   = excluded.updated_at
-              """;
+                    insert into t_candidates (id, base_asset, symbol, exchanges, source, state,
+                                              anchor_high, pump_start, detected_at, deadline, confirmed_at, updated_at)
+                    values (:id, :baseAsset, :symbol, :exchanges, :source, :state,
+                            :anchorHigh, :pumpStart, :detectedAt, :deadline, :confirmedAt, :updatedAt)
+                    on conflict(id) do update set
+                        exchanges    = excluded.exchanges,
+                        state        = excluded.state,
+                        anchor_high  = excluded.anchor_high,
+                        pump_start   = excluded.pump_start,
+                        deadline     = excluded.deadline,
+                        confirmed_at = excluded.confirmed_at,
+                        updated_at   = excluded.updated_at
+                    """;
   private final NamedParameterJdbcTemplate jdbc;
 
   public JdbcRecorder(NamedParameterJdbcTemplate jdbc) {
@@ -128,14 +128,32 @@ public class JdbcRecorder implements Recorder {
         jdbc.getJdbcOperations()
             .queryForObject(
                 """
-                            select count(*) from t_candidates
-                            where base_asset = ?
-                            and state != 'WATCHING'
-                            and updated_at > ?
-                            """,
+                                        select count(*) from t_candidates
+                                        where base_asset = ?
+                                        and state != 'WATCHING'
+                                        and updated_at > ?
+                                        """,
                 Integer.class,
                 baseAsset,
                 since.toEpochMilli());
     return count != null && count > 0;
+  }
+
+  @Override
+  public List<Candle> candlesOf(String symbol, int limit) {
+    return jdbc.getJdbcOperations()
+        .query(
+            "select * from (select * from t_candle_1m where symbol = ? "
+                + "order by open_time desc limit ?) order by open_time asc",
+            (rs, n) ->
+                new Candle(
+                    rs.getLong("open_time"),
+                    new BigDecimal(rs.getString("open")),
+                    new BigDecimal(rs.getString("high")),
+                    new BigDecimal(rs.getString("low")),
+                    new BigDecimal(rs.getString("close")),
+                    new BigDecimal(rs.getString("volume"))),
+            symbol,
+            limit);
   }
 }

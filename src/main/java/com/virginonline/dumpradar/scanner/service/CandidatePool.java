@@ -3,6 +3,8 @@ package com.virginonline.dumpradar.scanner.service;
 import com.virginonline.dumpradar.config.props.PoolProperties;
 import com.virginonline.dumpradar.scanner.exchange.Exchange;
 import com.virginonline.dumpradar.scanner.model.*;
+import com.virginonline.dumpradar.scanner.notify.EventPublisher;
+import com.virginonline.dumpradar.scanner.notify.EventType;
 import com.virginonline.dumpradar.scanner.repository.Recorder;
 import java.math.BigDecimal;
 import java.time.Clock;
@@ -16,7 +18,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
-import tools.jackson.databind.ObjectMapper;
 
 @Service
 public class CandidatePool {
@@ -24,14 +25,17 @@ public class CandidatePool {
   private final Recorder recorder;
   private final Clock clock;
   private final PoolProperties poolProperties;
-  private final ObjectMapper mapper;
+  private final EventPublisher eventPublisher;
 
   public CandidatePool(
-      Recorder recorder, Clock clock, PoolProperties poolProperties, ObjectMapper mapper) {
+      Recorder recorder,
+      Clock clock,
+      PoolProperties poolProperties,
+      EventPublisher eventPublisher) {
     this.recorder = recorder;
     this.clock = clock;
     this.poolProperties = poolProperties;
-    this.mapper = mapper;
+    this.eventPublisher = eventPublisher;
   }
 
   public synchronized Decision admit(PumpSignal signal) {
@@ -64,7 +68,7 @@ public class CandidatePool {
 
       recorder.upsertCandidate(merged);
       if (anchorUpdated) {
-        recorder.appendEvent(merged.id(), "anchor_update", payloadOf(merged), now);
+        eventPublisher.publish(merged, EventType.ANCHOR_UPDATE, now, null);
       }
       return new Decision(merged, false, true, anchorUpdated);
     }
@@ -86,11 +90,11 @@ public class CandidatePool {
             null,
             now);
     recorder.upsertCandidate(created);
-    recorder.appendEvent(created.id(), "new", payloadOf(created), now);
+    eventPublisher.publish(created, EventType.NEW, now, null);
     return new Decision(created, true, false, false);
   }
 
-  public synchronized void confirm(String candidateId) {
+  public synchronized void confirm(String candidateId, Confirmation confirmation) {
     var candidate = getCandidateById(candidateId);
     Instant now = clock.instant();
     var newCandidate =
@@ -105,10 +109,11 @@ public class CandidatePool {
             candidate.pumpStart(),
             candidate.detectedAt(),
             candidate.deadline(),
-            now, // confirmedAt: null ⟺ не CONFIRMED
+            now,
             now);
     recorder.upsertCandidate(newCandidate);
-    recorder.appendEvent(candidate.id(), "confirmed", payloadOf(newCandidate), now);
+    // entr = close confrmcandle
+    eventPublisher.publish(newCandidate, EventType.CONFIRMED, now, confirmation.candle().close());
   }
 
   public synchronized void expireOverdue() {
@@ -130,7 +135,7 @@ public class CandidatePool {
               c.confirmedAt(),
               now);
       recorder.upsertCandidate(expired);
-      recorder.appendEvent(c.id(), "expired", payloadOf(expired), now);
+      eventPublisher.publish(expired, EventType.EXPIRED, now, null);
     }
   }
 
@@ -152,7 +157,7 @@ public class CandidatePool {
             candidate.confirmedAt(),
             now);
     recorder.upsertCandidate(newCandidate);
-    recorder.appendEvent(candidate.id(), "missed", payloadOf(newCandidate), now);
+    eventPublisher.publish(newCandidate, EventType.MISSED, now, null);
   }
 
   public Candidate getCandidateById(String candidateId) {
@@ -192,7 +197,8 @@ public class CandidatePool {
             candidate.confirmedAt(),
             now);
     recorder.upsertCandidate(newCandidate);
-    recorder.appendEvent(candidate.id(), "anchor_update", payloadOf(newCandidate), now);
+    eventPublisher.publish(newCandidate, EventType.ANCHOR_UPDATE, now, null);
+
     return Optional.of(newCandidate);
   }
 
@@ -208,14 +214,5 @@ public class CandidatePool {
 
   private Duration ttlOf(Source source) {
     return source == Source.SCAN_4H ? poolProperties.watching4h() : poolProperties.watching15m();
-  }
-
-  private String payloadOf(Candidate c) {
-    return mapper.writeValueAsString(
-        Map.of(
-            "candidateId", c.id(),
-            "anchorHigh", c.anchorHigh().toPlainString(),
-            "pumpStart", c.pumpStart().toPlainString(),
-            "state", c.state().name()));
   }
 }

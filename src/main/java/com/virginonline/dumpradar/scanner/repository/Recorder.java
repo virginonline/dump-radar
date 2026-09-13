@@ -16,4 +16,6 @@ public interface Recorder {
   List<Candidate> loadActive();
 
   boolean hasTerminalSince(String baseAsset, Instant since);
+
+  List<Candle> candlesOf(String symbol, int limit);
 }

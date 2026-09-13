@@ -140,14 +140,31 @@ class JdbcRecorderTest {
   }
 
   @Test
+  void candlesOf_latestLimitInChronologicalOrder() {
+    recorder.appendCandles(
+        "PEPEUSDT",
+        List.of(
+            candle(1_000L, "1.0"),
+            candle(1_060L, "1.1"),
+            candle(1_120L, "0.9"),
+            candle(1_180L, "1.2")));
+
+    List<Candle> last2 = recorder.candlesOf("PEPEUSDT", 2);
+
+    assertEquals(2, last2.size());
+    assertEquals(1_120L, last2.get(0).openTime()); // asc despite desc limit subquery
+    assertEquals(1_180L, last2.get(1).openTime());
+  }
+
+  @Test
   void terminalSince_cooldownWindow() {
-    recorder.upsertCandidate(watching("0.00001000")); // WATCHING — не в счёт
+    recorder.upsertCandidate(watching("0.00001000")); // WATCHING does not count
     assertFalse(recorder.hasTerminalSince("PEPE", T));
 
     recorder.upsertCandidate(terminal(CandidateState.EXPIRED)); // updatedAt = T+60s
     assertTrue(recorder.hasTerminalSince("PEPE", T.plusSeconds(30)));
     assertFalse(recorder.hasTerminalSince("PEPE", T.plusSeconds(120)));
-    assertFalse(recorder.hasTerminalSince("BTC", T)); // чужой base_asset
+    assertFalse(recorder.hasTerminalSince("BTC", T)); // foreign base_asset
   }
 
   private static Candidate terminal(CandidateState state) {
