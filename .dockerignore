@@ -1,0 +1,11 @@
+build/
+.gradle/
+.idea/
+bin/
+out/
+*.db
+*.sqlite
+*.sqlite3
+.git/
+.gradle
+dump-radar.db

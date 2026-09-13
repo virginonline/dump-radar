@@ -41,6 +41,10 @@ spotless {
     }
 }
 
+tasks.bootJar {
+    archiveFileName = "app.jar"
+}
+
 tasks.withType<Test> {
     useJUnitPlatform()
 }
