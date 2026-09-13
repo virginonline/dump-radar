@@ -2,7 +2,7 @@ package com.virginonline.dumpradar.scanner.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.virginonline.dumpradar.config.PrefilterProperties;
+import com.virginonline.dumpradar.config.props.PrefilterProperties;
 import com.virginonline.dumpradar.scanner.model.SymbolMeta;
 import com.virginonline.dumpradar.scanner.model.Ticker;
 import java.math.BigDecimal;

@@ -2,8 +2,8 @@ package com.virginonline.dumpradar.scanner.scheduled;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.virginonline.dumpradar.config.ConfirmProperties;
-import com.virginonline.dumpradar.config.PoolProperties;
+import com.virginonline.dumpradar.config.props.ConfirmProperties;
+import com.virginonline.dumpradar.config.props.PoolProperties;
 import com.virginonline.dumpradar.scanner.exchange.Exchange;
 import com.virginonline.dumpradar.scanner.exchange.MarketDataClient;
 import com.virginonline.dumpradar.scanner.exchange.Timeframe;

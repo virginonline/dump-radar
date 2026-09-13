@@ -1,6 +1,6 @@
 package com.virginonline.dumpradar;
 
-import com.virginonline.dumpradar.config.*;
+import com.virginonline.dumpradar.config.props.*;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -12,7 +12,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
       PoolProperties.class,
       ExchangeProperties.class,
       ScreenProperties.class,
-      PrefilterProperties.class
+      PrefilterProperties.class,
+      Scanner15mProperties.class,
     })
 public class DumpRadarApplication {
 

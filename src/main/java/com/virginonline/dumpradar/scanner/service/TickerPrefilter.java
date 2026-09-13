@@ -1,6 +1,6 @@
 package com.virginonline.dumpradar.scanner.service;
 
-import com.virginonline.dumpradar.config.PrefilterProperties;
+import com.virginonline.dumpradar.config.props.PrefilterProperties;
 import com.virginonline.dumpradar.scanner.model.SymbolMeta;
 import com.virginonline.dumpradar.scanner.model.Ticker;
 import java.time.Instant;

@@ -3,8 +3,8 @@ package com.virginonline.dumpradar.scanner.exchange.impl;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.virginonline.dumpradar.config.ExchangeProperties;
 import com.virginonline.dumpradar.config.RetryOn429Interceptor;
+import com.virginonline.dumpradar.config.props.ExchangeProperties;
 import com.virginonline.dumpradar.scanner.exchange.Exchange;
 import com.virginonline.dumpradar.scanner.exchange.Timeframe;
 import com.virginonline.dumpradar.scanner.model.Candle;

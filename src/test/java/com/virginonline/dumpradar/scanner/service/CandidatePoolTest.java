@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.virginonline.dumpradar.config.PoolProperties;
+import com.virginonline.dumpradar.config.props.PoolProperties;
 import com.virginonline.dumpradar.scanner.exchange.Exchange;
 import com.virginonline.dumpradar.scanner.model.Candidate;
 import com.virginonline.dumpradar.scanner.model.CandidateState;

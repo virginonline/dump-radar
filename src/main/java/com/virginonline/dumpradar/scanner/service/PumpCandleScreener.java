@@ -1,6 +1,6 @@
 package com.virginonline.dumpradar.scanner.service;
 
-import com.virginonline.dumpradar.config.ScreenProperties;
+import com.virginonline.dumpradar.config.props.ScreenProperties;
 import com.virginonline.dumpradar.scanner.model.Candle;
 import java.math.BigDecimal;
 import java.math.RoundingMode;

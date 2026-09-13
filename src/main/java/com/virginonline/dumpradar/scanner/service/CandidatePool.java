@@ -1,6 +1,6 @@
 package com.virginonline.dumpradar.scanner.service;
 
-import com.virginonline.dumpradar.config.PoolProperties;
+import com.virginonline.dumpradar.config.props.PoolProperties;
 import com.virginonline.dumpradar.scanner.exchange.Exchange;
 import com.virginonline.dumpradar.scanner.model.*;
 import com.virginonline.dumpradar.scanner.repository.Recorder;
@@ -34,7 +34,7 @@ public class CandidatePool {
     this.mapper = mapper;
   }
 
-  public Decision admit(PumpSignal signal) {
+  public synchronized Decision admit(PumpSignal signal) {
     Instant now = clock.instant();
 
     Optional<Candidate> active =
@@ -90,7 +90,7 @@ public class CandidatePool {
     return new Decision(created, true, false, false);
   }
 
-  public void confirm(String candidateId) {
+  public synchronized void confirm(String candidateId) {
     var candidate = getCandidateById(candidateId);
     Instant now = clock.instant();
     var newCandidate =
@@ -111,7 +111,7 @@ public class CandidatePool {
     recorder.appendEvent(candidate.id(), "confirmed", payloadOf(newCandidate), now);
   }
 
-  public void expireOverdue() {
+  public synchronized void expireOverdue() {
     Instant now = clock.instant();
     for (Candidate c : active()) {
       if (c.deadline().isAfter(now)) continue;
@@ -134,7 +134,7 @@ public class CandidatePool {
     }
   }
 
-  public void markMissed(String candidateId) {
+  public synchronized void markMissed(String candidateId) {
     var candidate = getCandidateById(candidateId);
     Instant now = clock.instant();
     var newCandidate =
@@ -173,7 +173,7 @@ public class CandidatePool {
     return active;
   }
 
-  public Optional<Candidate> raiseAnchor(String candidateId, BigDecimal newHigh) {
+  public synchronized Optional<Candidate> raiseAnchor(String candidateId, BigDecimal newHigh) {
     var now = clock.instant();
     var candidate = getCandidateById(candidateId);
     if (newHigh.compareTo(candidate.anchorHigh()) <= 0) return Optional.empty();

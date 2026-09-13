@@ -1,4 +1,4 @@
-package com.virginonline.dumpradar.config;
+package com.virginonline.dumpradar.config.props;
 
 import java.math.BigDecimal;
 import java.util.Set;

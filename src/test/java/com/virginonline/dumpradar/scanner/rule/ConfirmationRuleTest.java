@@ -3,7 +3,7 @@ package com.virginonline.dumpradar.scanner.rule;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.virginonline.dumpradar.config.ConfirmProperties;
+import com.virginonline.dumpradar.config.props.ConfirmProperties;
 import com.virginonline.dumpradar.scanner.exchange.Exchange;
 import com.virginonline.dumpradar.scanner.model.Candidate;
 import com.virginonline.dumpradar.scanner.model.CandidateState;

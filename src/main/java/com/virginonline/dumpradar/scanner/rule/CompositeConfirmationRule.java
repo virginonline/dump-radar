@@ -1,6 +1,6 @@
 package com.virginonline.dumpradar.scanner.rule;
 
-import com.virginonline.dumpradar.config.ConfirmProperties;
+import com.virginonline.dumpradar.config.props.ConfirmProperties;
 import com.virginonline.dumpradar.scanner.model.Candidate;
 import com.virginonline.dumpradar.scanner.model.Candle;
 import com.virginonline.dumpradar.scanner.model.Confirmation;

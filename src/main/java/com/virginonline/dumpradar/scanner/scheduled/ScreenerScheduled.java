@@ -1,6 +1,6 @@
 package com.virginonline.dumpradar.scanner.scheduled;
 
-import com.virginonline.dumpradar.config.PrefilterProperties;
+import com.virginonline.dumpradar.config.props.PrefilterProperties;
 import com.virginonline.dumpradar.scanner.exchange.MarketDataClient;
 import com.virginonline.dumpradar.scanner.exchange.Timeframe;
 import com.virginonline.dumpradar.scanner.model.PumpSignal;

@@ -1,4 +1,4 @@
-package com.virginonline.dumpradar.config;
+package com.virginonline.dumpradar.config.props;
 
 import java.time.Duration;
 import org.springframework.boot.context.properties.ConfigurationProperties;

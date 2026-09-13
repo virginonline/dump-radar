@@ -1,4 +1,4 @@
-package com.virginonline.dumpradar.config;
+package com.virginonline.dumpradar.config.props;
 
 import com.virginonline.dumpradar.scanner.exchange.Exchange;
 import java.time.Duration;

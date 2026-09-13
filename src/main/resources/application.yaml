@@ -26,6 +26,10 @@ app:
     min-price: 0.001
     min-listing-age-days: 14
     denied-base-coins: [ USDC, USDE, DAI, TUSD, FDUSD, USDP, USDD, USDS, FRAX, EURI, WBTC, WETH, WSTETH, CBBTC, CBETH ]
+  scanner15m:
+    surge-60m: 0.25        # +25% 60m
+    surge-6h: 0.60         # +60% 6h
+    volume-multiple: 8     # 15min volume >= 8x median
   screener:
     cron: "30 0/4 * * *"
     min-body-pct: 0.30 # candle body: (close - open) / open >= 0.30
