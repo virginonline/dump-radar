@@ -2,6 +2,7 @@ package com.virginonline.dumpradar.config;
 
 import java.time.Clock;
 import java.time.Duration;
+import okhttp3.Dispatcher;
 import okhttp3.OkHttpClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,8 +14,15 @@ public class HttpConfig {
     return new OkHttpClient.Builder()
         .connectTimeout(Duration.ofSeconds(5))
         .readTimeout(Duration.ofSeconds(10))
+        .dispatcher(dispatcher())
         .addInterceptor(new RetryOn429Interceptor(2))
         .build();
+  }
+
+  private Dispatcher dispatcher() {
+    Dispatcher dispatcher = new Dispatcher();
+    dispatcher.setMaxRequestsPerHost(4);
+    return dispatcher;
   }
 
   @Bean

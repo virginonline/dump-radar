@@ -9,6 +9,8 @@ spring:
         synchronous: NORMAL
         busy_timeout: 5000
 app:
+  notify:
+    gateway-url: '' # if empty = log-only notify
   confirmation:
     near-high: 0.04
     gap-drop: 0.28
